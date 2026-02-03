@@ -11,4 +11,4 @@ docker-build:
 [group('docker')]
 docker-run port='8000':
   mkdir -p data
-  docker run --rm -d -p {{port}}:8000 -v "$(pwd)/data:/app/data" -e DATABASE_URL=sqlite:///./data/carbsmart.db carbsmart
+  docker run --rm -d -p {{port}}:8000 --name carbsmart -v "$(pwd)/data:/app/data" -e DATABASE_URL=sqlite:///./data/carbsmart.db carbsmart
