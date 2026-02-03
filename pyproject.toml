@@ -1,0 +1,13 @@
+[project]
+name = "carbsmart"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "alembic",
+    "fastapi",
+    "python-multipart",
+    "sqlalchemy>=2.0",
+    "uvicorn",
+]

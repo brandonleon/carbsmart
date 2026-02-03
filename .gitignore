@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+
+# Virtual environments
+.venv/
+.env/
+.env.*
+
+# UV
+.uv/
+uv.lock
+
+# Build artifacts
+build/
+dist/
+*.whl
+
+# Database files / data
+carbsmart.db
+data/
+
+# OS
+.DS_Store
