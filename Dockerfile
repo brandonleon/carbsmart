@@ -9,8 +9,8 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # Install dependencies first for better layer caching.
-COPY pyproject.toml uv.lock* /app/
-RUN uv sync --locked --no-cache --no-install-project
+COPY pyproject.toml /app/
+RUN uv sync --no-cache --no-install-project
 
 # Copy the application code.
 COPY . /app
