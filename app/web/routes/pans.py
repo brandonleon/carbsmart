@@ -324,7 +324,15 @@ def _render_page(
                 </div>
                 <div>
                   <label class=\"form-label\">Weight (grams)</label>
-                  <input class=\"form-control\" name=\"weight_grams\" type=\"number\" min=\"0\" step=\"0.1\" required />
+                  <input
+                    class=\"form-control\"
+                    name=\"weight_grams\"
+                    type=\"number\"
+                    inputmode=\"decimal\"
+                    min=\"0\"
+                    step=\"0.1\"
+                    required
+                  />
                 </div>
                 <div>
                   <label class=\"form-label\">Capacity / Size (volume or pan size, e.g. 2 qt, 3 L)</label>
@@ -452,6 +460,7 @@ def edit_pan_page(pan_id: int, db: Session = Depends(get_db)) -> HTMLResponse:
                     class=\"form-control\"
                     name=\"weight_grams\"
                     type=\"number\"
+                    inputmode=\"decimal\"
                     min=\"0\"
                     step=\"0.1\"
                     value=\"{pan.weight_grams:.2f}\"
