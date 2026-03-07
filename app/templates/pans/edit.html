@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Pan{% endblock %}
+
+{% block content %}
+      <header class="mt-4 mb-3 animate-rise animate-delay-1">
+        <p class="text-uppercase text-secondary fw-semibold small mb-2">Update details</p>
+        <h1 class="display-6 mb-2">Edit Pan</h1>
+        <p class="text-secondary mb-0">Update the details and save when you are ready.</p>
+      </header>
+      <section class="row justify-content-center">
+        <div class="col-lg-6">
+          <div class="card shadow-sm border-0 animate-rise animate-delay-2">
+            <div class="card-body">
+              <form class="vstack gap-3" method="post" action="/pans/{{ pan.id }}">
+                <div>
+                  <label class="form-label">Pan name</label>
+                  <input class="form-control" name="name" value="{{ pan.name }}" required />
+                </div>
+                <div>
+                  <label class="form-label">Weight (grams)</label>
+                  <input
+                    class="form-control"
+                    name="weight_grams"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="0.1"
+                    value="{{ "%.2f"|format(pan.weight_grams) }}"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Capacity / Size (volume or pan size, e.g. 2 qt, 3 L)</label>
+                  <input
+                    class="form-control"
+                    name="capacity_label"
+                    value="{{ pan.capacity_label or '' }}"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Notes</label>
+                  <input class="form-control" name="notes" value="{{ pan.notes or '' }}" />
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button class="btn btn-primary" type="submit">Save changes</button>
+                  <a class="btn btn-outline-secondary" href="/pans">Cancel</a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+{% endblock %}

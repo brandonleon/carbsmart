@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Pans{% endblock %}
+
+{% block extra_css %}
+      .table thead th {
+        background: var(--bs-tertiary-bg);
+        color: var(--bs-body-color);
+      }
+{% endblock %}
+
+{% block content %}
+      <header class="mt-4 mb-3 animate-rise animate-delay-1">
+        <p class="text-uppercase text-secondary fw-semibold small mb-2">Prep once, cook often</p>
+        <h1 class="display-6 mb-2">Pan Library</h1>
+        <p class="text-secondary mb-0">Store your pan weights once and re-use them for every recipe.</p>
+      </header>
+
+      {% if created %}
+      <div class="alert alert-success mt-3 animate-rise animate-delay-1" role="alert">Pan added.</div>
+      {% endif %}
+      {% if updated %}
+      <div class="alert alert-success mt-3 animate-rise animate-delay-1" role="alert">Pan updated.</div>
+      {% endif %}
+      {% if error %}
+      <div class="alert alert-danger mt-3 animate-rise animate-delay-1" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <section class="row g-4 align-items-start mt-1">
+        <div class="col-lg-4">
+          <div class="card shadow-sm border-0 animate-rise animate-delay-2">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h2 class="h5 mb-0">Add a pan</h2>
+                <span class="badge text-bg-primary">New</span>
+              </div>
+              <form class="vstack gap-3" method="post" action="/pans">
+                <div>
+                  <label class="form-label">Pan name</label>
+                  <input class="form-control" name="name" required />
+                </div>
+                <div>
+                  <label class="form-label">Weight (grams)</label>
+                  <input
+                    class="form-control"
+                    name="weight_grams"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="0.1"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Capacity / Size (volume or pan size, e.g. 2 qt, 3 L)</label>
+                  <input
+                    class="form-control"
+                    name="capacity_label"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Notes</label>
+                  <input class="form-control" name="notes" placeholder="Optional" />
+                </div>
+                <button class="btn btn-primary" type="submit">Add pan</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="card shadow-sm border-0 animate-rise animate-delay-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between">
+                <h2 class="h5 mb-0">Saved pans</h2>
+                <span class="badge text-bg-secondary">{{ pans|length }} total</span>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Weight (g)</th>
+                    <th>Capacity</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if pans %}
+                  {% for pan in pans %}
+                  <tr>
+                    <td class="fw-semibold">{{ pan.id }}</td>
+                    <td>{{ pan.name }}</td>
+                    <td>{{ "%.2f"|format(pan.weight_grams) }}</td>
+                    <td>{{ pan.capacity_label if pan.capacity_label else '<span class="text-secondary">-</span>'|safe }}</td>
+                    <td>{{ pan.notes if pan.notes else '<span class="text-secondary">-</span>'|safe }}</td>
+                    <td><a class="btn btn-sm btn-outline-primary" href="/pans/{{ pan.id }}/edit">Edit</a></td>
+                  </tr>
+                  {% endfor %}
+                  {% else %}
+                  <tr><td colspan="6" class="text-center text-secondary py-4">No pans yet.</td></tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+{% endblock %}

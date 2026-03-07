@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Serving Calculator{% endblock %}
+
+{% block content %}
+      <header class="mt-4 mb-3 animate-rise animate-delay-1">
+        <p class="text-uppercase text-secondary fw-semibold small mb-2">Kitchen math, simplified</p>
+        <h1 class="display-6 mb-2">Serving Calculator</h1>
+        <p class="text-secondary mb-0">
+          Enter the total cooked weight with the pan and get precise serving sizes.
+        </p>
+      </header>
+
+      {% if error %}
+      <div class="alert alert-danger mt-3 animate-rise animate-delay-1" role="alert">{{ error }}</div>
+      {% endif %}
+
+      {% if not pans %}
+      <div class="alert alert-info mt-3 animate-rise animate-delay-1" role="alert">
+        Add a pan first to enable calculations.
+        <a class="alert-link" href="/pans">Go to pan library</a>.
+      </div>
+      {% endif %}
+
+      <section class="row g-4 align-items-start mt-1">
+        <div class="col-lg-5">
+          <div class="card shadow-sm border-0 animate-rise animate-delay-2">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h2 class="h5 mb-0">Inputs</h2>
+                <span class="badge text-bg-primary">Step 1</span>
+              </div>
+              <form class="vstack gap-3" method="post" action="/calc" id="calcForm">
+                <div>
+                  <label class="form-label">Pan</label>
+                  <select class="form-select" name="pan_id" required>
+                    {% if pans %}
+                    {% for pan in pans %}
+                    <option value="{{ pan.id }}" {{ 'selected' if pan.id|string == form.pan_id }}>{{ pan.label }}</option>
+                    {% endfor %}
+                    {% else %}
+                    <option value="">No pans available</option>
+                    {% endif %}
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Total weight (pan + food) in grams</label>
+                  <input
+                    class="form-control"
+                    name="total_weight_grams"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="0.1"
+                    value="{{ form.total_weight_grams }}"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="form-label">Total carbs (grams)</label>
+                  <input
+                    class="form-control"
+                    name="total_carbs"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="0.1"
+                    value="{{ form.total_carbs }}"
+                    required
+                  />
+                </div>
+                <hr class="my-1 opacity-25" />
+                <div>
+                  <label class="form-label">Target servings</label>
+                  <input
+                    class="form-control"
+                    id="targetServings"
+                    name="target_servings"
+                    type="number"
+                    inputmode="numeric"
+                    min="1"
+                    step="1"
+                    value="{{ form.target_servings }}"
+                    placeholder="e.g. 4"
+                  />
+                  <div class="form-text">Set this to divide evenly for your household. Leave blank to use serving size range below.</div>
+                </div>
+                <div id="servingRangeGroup">
+                  <label class="form-label text-secondary">Or target a serving size range (grams)</label>
+                  <div class="d-flex gap-2">
+                    <input
+                      class="form-control"
+                      id="targetMin"
+                      name="target_min_grams"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      step="1"
+                      value="{{ form.target_min_grams }}"
+                      placeholder="Min"
+                    />
+                    <span class="align-self-center text-secondary">&ndash;</span>
+                    <input
+                      class="form-control"
+                      id="targetMax"
+                      name="target_max_grams"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      step="1"
+                      value="{{ form.target_max_grams }}"
+                      placeholder="Max"
+                    />
+                  </div>
+                </div>
+                <button class="btn btn-primary" type="submit">Calculate servings</button>
+              </form>
+              <script>
+                (() => {
+                  const ts = document.getElementById("targetServings");
+                  const rg = document.getElementById("servingRangeGroup");
+                  const mn = document.getElementById("targetMin");
+                  const mx = document.getElementById("targetMax");
+                  function sync() {
+                    const hasTarget = ts.value.trim() !== "";
+                    rg.style.opacity = hasTarget ? "0.45" : "1";
+                    mn.disabled = hasTarget;
+                    mx.disabled = hasTarget;
+                  }
+                  ts.addEventListener("input", sync);
+                  sync();
+                })();
+              </script>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          {% if result %}
+          <div class="card shadow-sm border-0 h-100 animate-rise animate-delay-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h2 class="h5 mb-0">Results</h2>
+                <span class="badge text-bg-success">Ready</span>
+              </div>
+              <dl class="row gy-2 mb-0">
+                <dt class="col-7 text-secondary">Net cooked weight</dt>
+                <dd class="col-5 text-end fw-semibold">{{ result.net_weight_grams }} g</dd>
+                <dt class="col-7 text-secondary">Servings</dt>
+                <dd class="col-5 text-end fw-semibold">{{ result.servings }}</dd>
+                <dt class="col-7 text-secondary">Serving weight</dt>
+                <dd class="col-5 text-end fw-semibold">{{ result.serving_weight_grams }} g</dd>
+                <dt class="col-7 text-secondary">Carbs per serving</dt>
+                <dd class="col-5 text-end fw-semibold">{{ result.carbs_per_serving }} g</dd>
+              </dl>
+              {% if share_url %}
+              <hr class="my-2 opacity-25" />
+              <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                <button class="btn btn-sm btn-outline-primary" type="button" id="copyShareLink"
+                        data-url="{{ share_url }}">Copy share link</button>
+                <small class="text-secondary text-truncate" style="max-width:220px"
+                       title="{{ share_url }}">{{ share_url }}</small>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% else %}
+          <div class="card shadow-sm border-0 h-100 animate-rise animate-delay-3">
+            <div class="card-body">
+              <h2 class="h5">How it works</h2>
+              <p class="text-secondary mb-3">
+                We subtract your pan weight from the total, then divide by your serving range to recommend even
+                portions.
+              </p>
+              <div class="d-flex flex-wrap gap-2">
+                <span class="badge text-bg-secondary">Accurate</span>
+                <span class="badge text-bg-secondary">Fast</span>
+                <span class="badge text-bg-secondary">Repeatable</span>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+      (() => {
+        const btn = document.getElementById("copyShareLink");
+        if (!btn) return;
+        const label = btn.textContent;
+        btn.addEventListener("click", () => {
+          const url = new URL(btn.dataset.url, window.location.origin);
+          navigator.clipboard.writeText(url.href).then(() => {
+            btn.textContent = "Copied!";
+            setTimeout(() => { btn.textContent = label; }, 2000);
+          });
+        });
+      })();
+    </script>
+{% endblock %}

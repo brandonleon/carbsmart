@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Results{% endblock %}
+
+{% block nav %}
+      <div class="text-center mb-3 animate-rise">
+        <span class="brand fw-semibold" style="font-size:1.1rem">CarbSmart</span>
+      </div>
+{% endblock %}
+
+{% block content %}
+      <div class="card shadow-sm border-0 animate-rise animate-delay-1" style="max-width:480px;margin:0 auto">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h5 mb-0">Results</h2>
+            <span class="badge text-bg-success">Ready</span>
+          </div>
+          <dl class="row gy-2 mb-0">
+            <dt class="col-7 text-secondary">Net cooked weight</dt>
+            <dd class="col-5 text-end fw-semibold">{{ result.net_weight_grams }} g</dd>
+            <dt class="col-7 text-secondary">Servings</dt>
+            <dd class="col-5 text-end fw-semibold">{{ result.servings }}</dd>
+            <dt class="col-7 text-secondary">Serving weight</dt>
+            <dd class="col-5 text-end fw-semibold">{{ result.serving_weight_grams }} g</dd>
+            <dt class="col-7 text-secondary">Carbs per serving</dt>
+            <dd class="col-5 text-end fw-semibold">{{ result.carbs_per_serving }} g</dd>
+          </dl>
+          <hr class="my-2 opacity-25" />
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <a class="btn btn-sm btn-outline-primary" href="{{ full_url }}">Edit values</a>
+            <button class="btn btn-sm btn-outline-secondary" type="button" id="copyShareLink"
+                    data-url="{{ mini_url }}">Copy this link</button>
+          </div>
+        </div>
+      </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+      (() => {
+        const btn = document.getElementById("copyShareLink");
+        if (!btn) return;
+        const label = btn.textContent;
+        btn.addEventListener("click", () => {
+          const url = new URL(btn.dataset.url, window.location.origin);
+          navigator.clipboard.writeText(url.href).then(() => {
+            btn.textContent = "Copied!";
+            setTimeout(() => { btn.textContent = label; }, 2000);
+          });
+        });
+      })();
+    </script>
+{% endblock %}

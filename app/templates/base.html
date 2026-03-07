@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CarbSmart - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+    />
+    <style>
+      :root {
+        --cs-font-sans: "Manrope", "Segoe UI", sans-serif;
+        --cs-font-display: "Playfair Display", "Times New Roman", serif;
+      }
+      :root[data-bs-theme="light"] {
+        color-scheme: light;
+        --cs-base: #eff1f5;
+        --cs-mantle: #e6e9ef;
+        --cs-crust: #dce0e8;
+        --cs-surface0: #ccd0da;
+        --cs-surface1: #bcc0cc;
+        --cs-surface2: #acb0be;
+        --cs-overlay0: #9ca0b0;
+        --cs-overlay1: #8c8fa1;
+        --cs-overlay2: #7c7f93;
+        --cs-text: #4c4f69;
+        --cs-subtext0: #6c6f85;
+        --cs-subtext1: #5c5f77;
+        --cs-blue: #1e66f5;
+        --cs-lavender: #7287fd;
+        --cs-green: #40a02b;
+        --cs-yellow: #df8e1d;
+        --cs-red: #d20f39;
+        --cs-mauve: #8839ef;
+        --cs-rosewater: #dc8a78;
+        --cs-peach: #fe640b;
+
+        --bs-body-bg: var(--cs-base);
+        --bs-body-color: var(--cs-text);
+        --bs-secondary-color: var(--cs-subtext0);
+        --bs-tertiary-bg: var(--cs-mantle);
+        --bs-emphasis-color: var(--cs-text);
+        --bs-border-color: var(--cs-surface2);
+        --bs-link-color: var(--cs-blue);
+        --bs-link-hover-color: var(--cs-lavender);
+        --bs-primary: var(--cs-mauve);
+        --bs-primary-rgb: 136, 57, 239;
+        --bs-secondary: var(--cs-overlay1);
+        --bs-secondary-rgb: 140, 143, 161;
+        --bs-success: var(--cs-green);
+        --bs-success-rgb: 64, 160, 43;
+        --bs-danger: var(--cs-red);
+        --bs-danger-rgb: 210, 15, 57;
+        --bs-warning: var(--cs-yellow);
+        --bs-warning-rgb: 223, 142, 29;
+        --bs-info: var(--cs-blue);
+        --bs-info-rgb: 30, 102, 245;
+        --bs-card-bg: rgba(255, 255, 255, 0.82);
+        --bs-card-border-color: var(--cs-surface2);
+      }
+      :root[data-bs-theme="dark"] {
+        color-scheme: dark;
+        --cs-base: #1e1e2e;
+        --cs-mantle: #181825;
+        --cs-crust: #11111b;
+        --cs-surface0: #313244;
+        --cs-surface1: #45475a;
+        --cs-surface2: #585b70;
+        --cs-overlay0: #6c7086;
+        --cs-overlay1: #7f849c;
+        --cs-overlay2: #9399b2;
+        --cs-text: #cdd6f4;
+        --cs-subtext0: #a6adc8;
+        --cs-subtext1: #bac2de;
+        --cs-blue: #89b4fa;
+        --cs-lavender: #b4befe;
+        --cs-green: #a6e3a1;
+        --cs-yellow: #f9e2af;
+        --cs-red: #f38ba8;
+        --cs-mauve: #cba6f7;
+        --cs-rosewater: #f5e0dc;
+        --cs-peach: #fab387;
+
+        --bs-body-bg: var(--cs-base);
+        --bs-body-color: var(--cs-text);
+        --bs-secondary-color: var(--cs-subtext0);
+        --bs-tertiary-bg: var(--cs-mantle);
+        --bs-emphasis-color: var(--cs-text);
+        --bs-border-color: var(--cs-surface2);
+        --bs-link-color: var(--cs-blue);
+        --bs-link-hover-color: var(--cs-lavender);
+        --bs-primary: var(--cs-mauve);
+        --bs-primary-rgb: 203, 166, 247;
+        --bs-secondary: var(--cs-overlay1);
+        --bs-secondary-rgb: 127, 132, 156;
+        --bs-success: var(--cs-green);
+        --bs-success-rgb: 166, 227, 161;
+        --bs-danger: var(--cs-red);
+        --bs-danger-rgb: 243, 139, 168;
+        --bs-warning: var(--cs-yellow);
+        --bs-warning-rgb: 249, 226, 175;
+        --bs-info: var(--cs-blue);
+        --bs-info-rgb: 137, 180, 250;
+        --bs-card-bg: rgba(24, 24, 37, 0.88);
+        --bs-card-border-color: var(--cs-surface1);
+      }
+      body {
+        font-family: var(--cs-font-sans);
+        min-height: 100vh;
+      }
+      :root[data-bs-theme="light"] body {
+        background:
+          radial-gradient(900px 500px at 10% -10%, rgba(220, 138, 120, 0.25), transparent 60%),
+          radial-gradient(700px 500px at 110% 0%, rgba(114, 135, 253, 0.2), transparent 60%),
+          var(--bs-body-bg);
+      }
+      :root[data-bs-theme="dark"] body {
+        background:
+          radial-gradient(900px 500px at 10% -10%, rgba(203, 166, 247, 0.18), transparent 60%),
+          radial-gradient(700px 500px at 110% 0%, rgba(137, 180, 250, 0.12), transparent 60%),
+          var(--bs-body-bg);
+      }
+      .brand,
+      h1,
+      h2,
+      .display-6,
+      .headline {
+        font-family: var(--cs-font-display);
+        letter-spacing: 0.3px;
+      }
+      .navbar,
+      .card {
+        backdrop-filter: blur(10px);
+      }
+      .card {
+        border-radius: 1.25rem;
+      }
+      .form-control,
+      .form-select {
+        border-radius: 0.85rem;
+      }
+      .btn {
+        border-radius: 999px;
+      }
+      {% block extra_css %}{% endblock %}
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-rise {
+        animation: rise 0.6s ease-out both;
+      }
+      .animate-delay-1 {
+        animation-delay: 0.1s;
+      }
+      .animate-delay-2 {
+        animation-delay: 0.2s;
+      }
+      .animate-delay-3 {
+        animation-delay: 0.3s;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .animate-rise {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container py-4">
+      {% block nav %}
+      <nav class="navbar bg-body-tertiary border rounded-4 shadow-sm px-3 py-2 animate-rise">
+        <div class="container-fluid px-0">
+          <a class="navbar-brand brand fw-semibold" href="/pans">CarbSmart <span class="text-secondary fw-normal small">v{{ version }}</span></a>
+          <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
+            <a class="btn btn-sm {{ 'btn-primary' if active_nav == 'pans' else 'btn-outline-secondary' }}" href="/pans">Pan Library</a>
+            <a class="btn btn-sm {{ 'btn-primary' if active_nav == 'calc' else 'btn-outline-secondary' }}" href="/calc">Serving Calculator</a>
+            <button class="btn btn-sm btn-outline-secondary" type="button" id="themeToggle" aria-pressed="false">
+              Theme: <span id="themeLabel">Light</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+      {% endblock %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <script>
+      (() => {
+        const storageKey = "carbsmart-theme";
+        const root = document.documentElement;
+        const stored = localStorage.getItem(storageKey);
+        const theme = stored || "light";
+        root.setAttribute("data-bs-theme", theme);
+
+        const toggle = document.getElementById("themeToggle");
+        const label = document.getElementById("themeLabel");
+        const update = () => {
+          const current = root.getAttribute("data-bs-theme") || "light";
+          if (label) {
+            label.textContent = current === "dark" ? "Dark" : "Light";
+          }
+          if (toggle) {
+            toggle.setAttribute("aria-pressed", current === "dark" ? "true" : "false");
+          }
+        };
+
+        update();
+        if (toggle) {
+          toggle.addEventListener("click", () => {
+            const current = root.getAttribute("data-bs-theme") || "light";
+            const next = current === "light" ? "dark" : "light";
+            root.setAttribute("data-bs-theme", next);
+            localStorage.setItem(storageKey, next);
+            update();
+          });
+        }
+      })();
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
