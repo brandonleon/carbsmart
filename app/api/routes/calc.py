@@ -15,7 +15,7 @@ def calculate(payload: CalcRequest, db: Session = Depends(get_db)) -> CalcRespon
     if not pan:
         raise HTTPException(status_code=404, detail="Pan not found")
 
-    if payload.target_min_grams > payload.target_max_grams:
+    if payload.target_servings is None and payload.target_min_grams > payload.target_max_grams:
         raise HTTPException(status_code=422, detail="target_min_grams must be <= target_max_grams")
 
     try:
@@ -25,6 +25,7 @@ def calculate(payload: CalcRequest, db: Session = Depends(get_db)) -> CalcRespon
             payload.total_carbs,
             payload.target_min_grams,
             payload.target_max_grams,
+            payload.target_servings,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

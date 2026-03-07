@@ -31,6 +31,7 @@ class CalcRequest(BaseModel):
     total_weight_grams: float = Field(..., gt=0)
     pan_id: int = Field(..., gt=0)
     total_carbs: float = Field(..., ge=0)
+    target_servings: int | None = Field(default=None, ge=1)
     target_min_grams: float = Field(default=200, gt=0)
     target_max_grams: float = Field(default=300, gt=0)
 

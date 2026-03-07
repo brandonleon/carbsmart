@@ -40,11 +40,17 @@ def calculate_plan(
     total_carbs: float,
     target_min_grams: float,
     target_max_grams: float,
+    target_servings: int | None = None,
 ) -> tuple[float, int, float, float]:
     net_weight = total_weight_grams - pan_weight_grams
     if net_weight <= 0:
         raise ValueError("Total weight must be greater than pan weight")
 
-    servings, serving_weight = choose_servings(net_weight, target_min_grams, target_max_grams)
+    if target_servings is not None:
+        servings = target_servings
+        serving_weight = net_weight / servings
+    else:
+        servings, serving_weight = choose_servings(net_weight, target_min_grams, target_max_grams)
+
     carbs_per_serving = total_carbs / servings if servings else 0.0
     return net_weight, servings, serving_weight, carbs_per_serving

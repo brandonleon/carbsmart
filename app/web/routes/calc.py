@@ -1,6 +1,7 @@
 from html import escape
+from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
@@ -246,11 +247,82 @@ def _pan_label(pan) -> str:
     return escape(label)
 
 
+def _build_share_url(form: dict[str, str], mini: bool = True) -> str:
+    params = {k: v for k, v in form.items() if v}
+    if mini:
+        params["view"] = "mini"
+    return f"/calc?{urlencode(params)}"
+
+
+COPY_LINK_SCRIPT = """
+    <script>
+      (() => {
+        const btn = document.getElementById("copyShareLink");
+        if (!btn) return;
+        const label = btn.textContent;
+        btn.addEventListener("click", () => {
+          const url = new URL(btn.dataset.url, window.location.origin);
+          navigator.clipboard.writeText(url.href).then(() => {
+            btn.textContent = "Copied!";
+            setTimeout(() => { btn.textContent = label; }, 2000);
+          });
+        });
+      })();
+    </script>
+"""
+
+
+def _render_mini_page(result: dict[str, str], full_url: str, mini_url: str) -> str:
+    return f"""<!doctype html>
+<html lang=\"en\">
+  <head>
+    <meta charset=\"utf-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+    <title>CarbSmart - Results</title>
+{COMMON_HEAD}
+  </head>
+  <body>
+    <main class=\"container py-4\" style=\"max-width:480px\">
+      <div class=\"text-center mb-3 animate-rise\">
+        <span class=\"brand fw-semibold\" style=\"font-size:1.1rem\">CarbSmart</span>
+      </div>
+      <div class=\"card shadow-sm border-0 animate-rise animate-delay-1\">
+        <div class=\"card-body\">
+          <div class=\"d-flex align-items-center justify-content-between mb-3\">
+            <h2 class=\"h5 mb-0\">Results</h2>
+            <span class=\"badge text-bg-success\">Ready</span>
+          </div>
+          <dl class=\"row gy-2 mb-0\">
+            <dt class=\"col-7 text-secondary\">Net cooked weight</dt>
+            <dd class=\"col-5 text-end fw-semibold\">{result['net_weight_grams']} g</dd>
+            <dt class=\"col-7 text-secondary\">Servings</dt>
+            <dd class=\"col-5 text-end fw-semibold\">{result['servings']}</dd>
+            <dt class=\"col-7 text-secondary\">Serving weight</dt>
+            <dd class=\"col-5 text-end fw-semibold\">{result['serving_weight_grams']} g</dd>
+            <dt class=\"col-7 text-secondary\">Carbs per serving</dt>
+            <dd class=\"col-5 text-end fw-semibold\">{result['carbs_per_serving']} g</dd>
+          </dl>
+          <hr class=\"my-2 opacity-25\" />
+          <div class=\"d-flex flex-wrap gap-2 mt-2\">
+            <a class=\"btn btn-sm btn-outline-primary\" href=\"{escape(full_url)}\">Edit values</a>
+            <button class=\"btn btn-sm btn-outline-secondary\" type=\"button\" id=\"copyShareLink\"
+                    data-url=\"{escape(mini_url)}\">Copy this link</button>
+          </div>
+        </div>
+      </div>
+    </main>
+{THEME_SCRIPT}
+{COPY_LINK_SCRIPT}
+  </body>
+</html>"""
+
+
 def _render_page(
     pans,
     form: dict[str, str] | None = None,
     result: dict[str, str] | None = None,
     error: str | None = None,
+    share_url: str | None = None,
 ) -> str:
     form = form or {}
     selected_pan = form.get("pan_id", "")
@@ -270,6 +342,17 @@ def _render_page(
         )
 
     if result:
+        share_html = ""
+        if share_url:
+            share_html = f"""
+              <hr class=\"my-2 opacity-25\" />
+              <div class=\"d-flex flex-wrap align-items-center gap-2 mt-2\">
+                <button class=\"btn btn-sm btn-outline-primary\" type=\"button\" id=\"copyShareLink\"
+                        data-url=\"{escape(share_url)}\">Copy share link</button>
+                <small class=\"text-secondary text-truncate\" style=\"max-width:220px\"
+                       title=\"{escape(share_url)}\">{escape(share_url)}</small>
+              </div>
+            """
         result_html = f"""
           <div class=\"card shadow-sm border-0 h-100 animate-rise animate-delay-3\">
             <div class=\"card-body\">
@@ -287,6 +370,7 @@ def _render_page(
                 <dt class=\"col-7 text-secondary\">Carbs per serving</dt>
                 <dd class=\"col-5 text-end fw-semibold\">{result['carbs_per_serving']} g</dd>
               </dl>
+              {share_html}
             </div>
           </div>
         """
@@ -345,7 +429,7 @@ def _render_page(
                 <h2 class=\"h5 mb-0\">Inputs</h2>
                 <span class=\"badge text-bg-primary\">Step 1</span>
               </div>
-              <form class=\"vstack gap-3\" method=\"post\" action=\"/calc\">
+              <form class=\"vstack gap-3\" method=\"post\" action=\"/calc\" id=\"calcForm\">
                 <div>
                   <label class=\"form-label\">Pan</label>
                   <select class=\"form-select\" name=\"pan_id\" required>
@@ -378,34 +462,68 @@ def _render_page(
                     required
                   />
                 </div>
+                <hr class=\"my-1 opacity-25\" />
                 <div>
-                  <label class=\"form-label\">Target serving min (grams)</label>
+                  <label class=\"form-label\">Target servings</label>
                   <input
                     class=\"form-control\"
-                    name=\"target_min_grams\"
+                    id=\"targetServings\"
+                    name=\"target_servings\"
                     type=\"number\"
                     inputmode=\"numeric\"
-                    min=\"0\"
+                    min=\"1\"
                     step=\"1\"
-                    value=\"{escape(form.get('target_min_grams', '200'))}\"
-                    required
+                    value=\"{escape(form.get('target_servings', ''))}\"
+                    placeholder=\"e.g. 4\"
                   />
+                  <div class=\"form-text\">Set this to divide evenly for your household. Leave blank to use serving size range below.</div>
                 </div>
-                <div>
-                  <label class=\"form-label\">Target serving max (grams)</label>
-                  <input
-                    class=\"form-control\"
-                    name=\"target_max_grams\"
-                    type=\"number\"
-                    inputmode=\"numeric\"
-                    min=\"0\"
-                    step=\"1\"
-                    value=\"{escape(form.get('target_max_grams', '300'))}\"
-                    required
-                  />
+                <div id=\"servingRangeGroup\">
+                  <label class=\"form-label text-secondary\">Or target a serving size range (grams)</label>
+                  <div class=\"d-flex gap-2\">
+                    <input
+                      class=\"form-control\"
+                      id=\"targetMin\"
+                      name=\"target_min_grams\"
+                      type=\"number\"
+                      inputmode=\"numeric\"
+                      min=\"0\"
+                      step=\"1\"
+                      value=\"{escape(form.get('target_min_grams', '200'))}\"
+                      placeholder=\"Min\"
+                    />
+                    <span class=\"align-self-center text-secondary\">&ndash;</span>
+                    <input
+                      class=\"form-control\"
+                      id=\"targetMax\"
+                      name=\"target_max_grams\"
+                      type=\"number\"
+                      inputmode=\"numeric\"
+                      min=\"0\"
+                      step=\"1\"
+                      value=\"{escape(form.get('target_max_grams', '300'))}\"
+                      placeholder=\"Max\"
+                    />
+                  </div>
                 </div>
                 <button class=\"btn btn-primary\" type=\"submit\">Calculate servings</button>
               </form>
+              <script>
+                (() => {{
+                  const ts = document.getElementById("targetServings");
+                  const rg = document.getElementById("servingRangeGroup");
+                  const mn = document.getElementById("targetMin");
+                  const mx = document.getElementById("targetMax");
+                  function sync() {{
+                    const hasTarget = ts.value.trim() !== "";
+                    rg.style.opacity = hasTarget ? "0.45" : "1";
+                    mn.disabled = hasTarget;
+                    mx.disabled = hasTarget;
+                  }}
+                  ts.addEventListener("input", sync);
+                  sync();
+                }})();
+              </script>
             </div>
           </div>
         </div>
@@ -415,14 +533,79 @@ def _render_page(
       </section>
     </main>
 {THEME_SCRIPT}
+{COPY_LINK_SCRIPT}
   </body>
 </html>"""
 
 
 @router.get("/calc", response_class=HTMLResponse)
-def calc_page(db: Session = Depends(get_db)) -> HTMLResponse:
+def calc_page(
+    pan_id: int | None = Query(default=None),
+    total_weight_grams: float | None = Query(default=None),
+    total_carbs: float | None = Query(default=None),
+    target_servings: int | None = Query(default=None),
+    target_min_grams: float | None = Query(default=None),
+    target_max_grams: float | None = Query(default=None),
+    view: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+) -> HTMLResponse:
     pans = pans_repo.list_pans(db)
-    return HTMLResponse(_render_page(pans))
+
+    has_params = pan_id is not None and total_weight_grams is not None and total_carbs is not None
+    if not has_params:
+        return HTMLResponse(_render_page(pans))
+
+    pan = pans_repo.get_pan(db, pan_id)
+    if not pan:
+        return HTMLResponse(
+            _render_page(pans, error="Pan not found"),
+            status_code=404,
+        )
+
+    eff_min = target_min_grams if target_min_grams is not None else 200.0
+    eff_max = target_max_grams if target_max_grams is not None else 300.0
+
+    form_values = {
+        "pan_id": str(pan_id),
+        "total_weight_grams": f"{total_weight_grams}",
+        "total_carbs": f"{total_carbs}",
+        "target_servings": f"{target_servings}" if target_servings is not None else "",
+        "target_min_grams": f"{eff_min}",
+        "target_max_grams": f"{eff_max}",
+    }
+
+    if target_servings is None and eff_min > eff_max:
+        return HTMLResponse(
+            _render_page(pans, form=form_values, error="Target min must be <= target max"),
+            status_code=422,
+        )
+
+    try:
+        net_weight, servings, serving_weight, carbs_per_serving = calculate_plan(
+            total_weight_grams,
+            pan.weight_grams,
+            total_carbs,
+            eff_min,
+            eff_max,
+            target_servings,
+        )
+    except ValueError as exc:
+        return HTMLResponse(_render_page(pans, form=form_values, error=str(exc)), status_code=422)
+
+    result = {
+        "net_weight_grams": f"{net_weight:.1f}",
+        "servings": f"{servings}",
+        "serving_weight_grams": f"{serving_weight:.1f}",
+        "carbs_per_serving": f"{carbs_per_serving:.1f}",
+    }
+
+    mini_url = _build_share_url(form_values, mini=True)
+    full_url = _build_share_url(form_values, mini=False)
+
+    if view == "mini":
+        return HTMLResponse(_render_mini_page(result, full_url, mini_url))
+
+    return HTMLResponse(_render_page(pans, form=form_values, result=result, share_url=mini_url))
 
 
 @router.post("/calc", response_class=HTMLResponse)
@@ -430,6 +613,7 @@ def calc_submit(
     pan_id: int = Form(...),
     total_weight_grams: float = Form(...),
     total_carbs: float = Form(...),
+    target_servings: int | None = Form(default=None),
     target_min_grams: float = Form(200),
     target_max_grams: float = Form(300),
     db: Session = Depends(get_db),
@@ -443,11 +627,12 @@ def calc_submit(
         "pan_id": str(pan_id),
         "total_weight_grams": f"{total_weight_grams}",
         "total_carbs": f"{total_carbs}",
+        "target_servings": f"{target_servings}" if target_servings is not None else "",
         "target_min_grams": f"{target_min_grams}",
         "target_max_grams": f"{target_max_grams}",
     }
 
-    if target_min_grams > target_max_grams:
+    if target_servings is None and target_min_grams > target_max_grams:
         return HTMLResponse(
             _render_page(pans, form=form_values, error="Target min must be <= target max"),
             status_code=422,
@@ -460,6 +645,7 @@ def calc_submit(
             total_carbs,
             target_min_grams,
             target_max_grams,
+            target_servings,
         )
     except ValueError as exc:
         return HTMLResponse(_render_page(pans, form=form_values, error=str(exc)), status_code=422)
@@ -471,4 +657,5 @@ def calc_submit(
         "carbs_per_serving": f"{carbs_per_serving:.1f}",
     }
 
-    return HTMLResponse(_render_page(pans, form=form_values, result=result))
+    share_url = _build_share_url(form_values, mini=True)
+    return HTMLResponse(_render_page(pans, form=form_values, result=result, share_url=share_url))
