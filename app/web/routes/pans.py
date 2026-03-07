@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app import __version__
 from app.db import get_db
 from app.models import PanCreate, PanUpdate
 from app.repositories import pans as pans_repo
@@ -231,6 +232,7 @@ def _render_nav(active: str) -> str:
     <nav class="navbar bg-body-tertiary border rounded-4 shadow-sm px-3 py-2 animate-rise">
       <div class="container-fluid px-0">
         <a class="navbar-brand brand fw-semibold" href="/pans">CarbSmart</a>
+        <span class="text-secondary small ms-2">v{__version__}</span>
         <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
           <a class="{pans_class}" href="/pans">Pan Library</a>
           <a class="{calc_class}" href="/calc">Serving Calculator</a>
