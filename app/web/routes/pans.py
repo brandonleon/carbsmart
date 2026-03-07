@@ -231,8 +231,7 @@ def _render_nav(active: str) -> str:
     return f"""
     <nav class="navbar bg-body-tertiary border rounded-4 shadow-sm px-3 py-2 animate-rise">
       <div class="container-fluid px-0">
-        <a class="navbar-brand brand fw-semibold" href="/pans">CarbSmart</a>
-        <span class="text-secondary small ms-2">v{__version__}</span>
+        <a class="navbar-brand brand fw-semibold" href="/pans">CarbSmart <span class="text-secondary fw-normal small">v{__version__}</span></a>
         <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
           <a class="{pans_class}" href="/pans">Pan Library</a>
           <a class="{calc_class}" href="/calc">Serving Calculator</a>
